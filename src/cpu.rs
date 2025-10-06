@@ -1,4 +1,5 @@
-use std::ops::Add;
+use std::collections::HashMap;
+use crate::opcodes;
 
 pub struct CPU {
     pub register_a: u8,
@@ -148,42 +149,34 @@ impl CPU {
     }
 
     pub fn run(&mut self) {
+        let ref opcodes: HashMap<u8, &'static opcodes::OpCode> = *opcodes::OPCODES_MAP;
+
         loop {
-            let opscode = self.mem_read(self.program_counter);
+            let code = &self.mem_read(self.program_counter);
             self.program_counter += 1;
+            let program_counter_state = self.program_counter;
 
-            match opscode {
-                0xA9 => {
-                    self.lda(&AddressingMode::Immediate);
-                    self.program_counter += 1;
+            let opcode = opcodes.get(code).expect(&format!("OpCode {:x} is not recognized", code));
+
+            match code {
+                0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
+                    self.lda(&opcode.mode);
                 }
 
-                0xA5 => {
-                    self.lda(&AddressingMode::ZeroPage);
-                    self.program_counter += 1;
-                }
-
-                0xAD => {
-                    self.lda(&AddressingMode::Absolute);
-                    self.program_counter += 2;
+                0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
+                    self.sta(&opcode.mode);
                 }
 
                 0xAA => self.tax(),
 
                 0xE8 => self.inx(),
 
-                0x85 => {
-                    self.sta(&AddressingMode::ZeroPage);
-                    self.program_counter += 1;
-                }
-
-                0x95 => {
-                    self.sta(&AddressingMode::ZeroPage_X);
-                    self.program_counter += 1;
-                }
-
                 0x00 => return,
                 _ => todo!()
+            }
+
+            if program_counter_state == self.program_counter {
+                self.program_counter += (opcode.len - 1) as u16;
             }
         }
     }
