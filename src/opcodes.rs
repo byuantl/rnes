@@ -23,6 +23,15 @@ impl OpCode {
 
 lazy_static! {
     pub static ref CPU_OPS_CODES: Vec<OpCode> = vec![
+        OpCode::new(0x69, "ADC", 2, 2, AddressingMode::Immediate),
+        OpCode::new(0x65, "ADC", 2, 3, AddressingMode::ZeroPage),
+        OpCode::new(0x75, "ADC", 2, 4, AddressingMode::ZeroPage_X),
+        OpCode::new(0x6D, "ADC", 3, 4, AddressingMode::Absolute),
+        OpCode::new(0x7D, "ADC", 3, 4/* +1 if page crossed */, AddressingMode::Absolute_X),
+        OpCode::new(0x79, "ADC", 3, 4/* +1 if page crossed */, AddressingMode::Absolute_Y),
+        OpCode::new(0x61, "ADC", 2, 6, AddressingMode::Indirect_X),
+        OpCode::new(0x71, "ADC", 2, 5/* +1 if page crossed */, AddressingMode::Indirect_Y),
+
         OpCode::new(0x00, "BRK", 1, 7, AddressingMode::NoneAddressing),
         OpCode::new(0xAA, "TAX", 1, 2, AddressingMode::NoneAddressing),
         OpCode::new(0xE8, "INX", 1, 2, AddressingMode::NoneAddressing),
@@ -31,10 +40,10 @@ lazy_static! {
         OpCode::new(0xA5, "LDA", 2, 3, AddressingMode::ZeroPage),
         OpCode::new(0xB5, "LDA", 2, 4, AddressingMode::ZeroPage_X),
         OpCode::new(0xAD, "LDA", 3, 4, AddressingMode::Absolute),
-        OpCode::new(0xBD, "LDA", 3, 4/*+1 if page crossed*/, AddressingMode::Absolute_X),
-        OpCode::new(0xB9, "LDA", 3, 4/*+1 if page crossed*/, AddressingMode::Absolute_Y),
+        OpCode::new(0xBD, "LDA", 3, 4/* +1 if page crossed */, AddressingMode::Absolute_X),
+        OpCode::new(0xB9, "LDA", 3, 4/* +1 if page crossed */, AddressingMode::Absolute_Y),
         OpCode::new(0xA1, "LDA", 2, 6, AddressingMode::Indirect_X),
-        OpCode::new(0xB1, "LDA", 2, 5/*+1 if page crossed*/, AddressingMode::Indirect_Y),
+        OpCode::new(0xB1, "LDA", 2, 5/* +1 if page crossed */, AddressingMode::Indirect_Y),
 
         OpCode::new(0x85, "STA", 2, 3, AddressingMode::ZeroPage),
         OpCode::new(0x95, "STA", 2, 4, AddressingMode::ZeroPage_X),
@@ -43,6 +52,7 @@ lazy_static! {
         OpCode::new(0x99, "STA", 3, 5, AddressingMode::Absolute_Y),
         OpCode::new(0x81, "STA", 2, 6, AddressingMode::Indirect_X),
         OpCode::new(0x91, "STA", 2, 6, AddressingMode::Indirect_Y),
+
 
     ];
 
