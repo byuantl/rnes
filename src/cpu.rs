@@ -278,7 +278,7 @@ impl CPU {
                     let addr = self.get_operand_address(mode);
                     let value = self.mem_read(addr);
 
-                    self.add_to_register_a(((value as i8).wrapping_neg().wrapping_sub(1)) as u8);
+                    self.add_to_register_a(!value);
                 }
                 "INC" => {
                     todo!()
@@ -427,6 +427,15 @@ mod test {
         cpu.load_and_run(vec![0xA9, 0x50, 0x69, 0x50, 0x00]);
 
         assert_eq!(cpu.register_a, 0xA0);
+        assert!(cpu.status.contains(CpuFlags::OVERFLOW));
+    }
+
+    #[test]
+    fn test_sbc_overflow() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x50, 0xE9, 0xB0, 0x00]);
+
+        // assert_eq!(cpu.register_a, 0xA0);
         assert!(cpu.status.contains(CpuFlags::OVERFLOW));
     }
 }
