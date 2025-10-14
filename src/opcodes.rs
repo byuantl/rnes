@@ -236,12 +236,12 @@ lazy_static! {
 
         OpCode::new(0xD8, "CLD", 1, 2, AddressingMode::NoneAddressing),
 
-        OpCode::new(0xf8, "SED", 1, 2, AddressingMode::NoneAddressing),
+        OpCode::new(0xF8, "SED", 1, 2, AddressingMode::NoneAddressing),
         
-        OpCode::new(0xb8, "CLV", 1, 2, AddressingMode::NoneAddressing),
+        OpCode::new(0xB8, "CLV", 1, 2, AddressingMode::NoneAddressing),
 
         /* Other */
-        OpCode::new(0xea, "NOP", 1, 2, AddressingMode::NoneAddressing),
+        OpCode::new(0xEA, "NOP", 1, 2, AddressingMode::NoneAddressing),
     ];
 
 
