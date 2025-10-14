@@ -1,5 +1,5 @@
 use std::{collections::HashMap};
-use crate::opcodes;
+use crate::opcodes::{self, OpCode};
 
 bitflags! {
     /// http://wiki.nesdev.com/w/index.php/Status_flags
@@ -47,16 +47,16 @@ pub struct CPU {
 #[derive(Debug)]
 #[allow(non_camel_case_types)]
 pub enum AddressingMode {
-   Immediate,
-   ZeroPage,
-   ZeroPage_X,
-   ZeroPage_Y,
-   Absolute,
-   Absolute_X,
-   Absolute_Y,
-   Indirect_X,
-   Indirect_Y,
-   NoneAddressing,
+    Immediate,
+    ZeroPage,
+    ZeroPage_X,
+    ZeroPage_Y,
+    Absolute,
+    Absolute_X,
+    Absolute_Y,
+    Indirect_X,
+    Indirect_Y,
+    NoneAddressing,
 }
 
 impl CPU {
@@ -309,10 +309,46 @@ impl CPU {
 
                 /* Shift */
                 "ASL" => {
-                    todo!()
+                    let mut data = if let AddressingMode::NoneAddressing = mode {
+                        self.register_a
+                    } else {
+                        self.mem_read(self.get_operand_address(mode))
+                    };
+
+                    if data >> 7 == 1 {
+                        self.status.insert(CpuFlags::CARRY);
+                    } else {
+                        self.status.remove(CpuFlags::CARRY);
+                    }
+                    data = data << 1;
+
+                    if let AddressingMode::NoneAddressing = mode {
+                        self.set_register_a(data);
+                    } else {
+                        self.mem_write(self.get_operand_address(mode), data);
+                        self.update_zero_and_negative_flags(data);
+                    }
                 }
                 "LSR" => {
-                    todo!()
+                    let mut data = if let AddressingMode::NoneAddressing = mode {
+                        self.register_a
+                    } else {
+                        self.mem_read(self.get_operand_address(mode))
+                    };
+
+                    if data & 1 == 1 {
+                        self.status.insert(CpuFlags::CARRY);
+                    } else {
+                        self.status.remove(CpuFlags::CARRY);
+                    }
+                    data = data >> 1;
+
+                    if let AddressingMode::NoneAddressing = mode {
+                        self.set_register_a(data);
+                    } else {
+                        self.mem_write(self.get_operand_address(mode), data);
+                        self.update_zero_and_negative_flags(data);
+                    }
                 }
                 "ROL" => {
                     todo!()
