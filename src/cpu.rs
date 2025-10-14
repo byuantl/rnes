@@ -281,10 +281,18 @@ impl CPU {
                     self.add_to_register_a(!value);
                 }
                 "INC" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+
+                    self.mem_write(addr, data.wrapping_add(1));
+                    self.update_zero_and_negative_flags(data);
                 }
                 "DEC" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+                    
+                    self.mem_write(addr, data.wrapping_sub(1));
+                    self.update_zero_and_negative_flags(data);
                 }
                 "INX" => {
                     self.set_register_x(self.register_x.wrapping_add(1));
@@ -299,30 +307,130 @@ impl CPU {
                     self.set_register_x(self.register_x.wrapping_sub(1));
                 }
 
-                // /* Shift */
-                // ASL 	LSR 	ROL 	ROR 	
+                /* Shift */
+                "ASL" => {
+                    todo!()
+                }
+                "LSR" => {
+                    todo!()
+                }
+                "ROL" => {
+                    todo!()
+                }
+                "ROR"  => {
+                    todo!()
+                }	
 
-                // /* Bitwise */
-                // AND 	ORA 	EOR 	BIT 				
+                /* Bitwise */
+                "AND" => {
+                    todo!()
+                }
+                "ORA" => {
+                    todo!()
+                }
+                "EOR" => {
+                    todo!()
+                }
+                "BIT" => {
+                    todo!()
+                }	
 
-                // /* Compare */
-                // CMP 	CPX 	CPY 		
+                /* Compare */
+                "CMP" => {
+                    todo!()
+                }
+                "CPX" => {
+                    todo!()
+                }	
+                "CPY" => {
+                    todo!()
+                }	
 
-                // /* Branch */
-                // BCC 	BCS 	BEQ 	BNE 	BPL 	BMI 	BVC 	BVS
+                /* Branch */
+                "BCC" => {
+                    todo!()
+                }	
+                "BCS" => {
+                    todo!()
+                }	
+                "BEQ" => {
+                    todo!()
+                }	
+                "BNE" => {
+                    todo!()
+                }	
+                "BPL" => {
+                    todo!()
+                }	
+                "BMI" => {
+                    todo!()
+                }	
+                "BVC" => {
+                    todo!()
+                }	
+                "BVS" => {
+                    todo!()
+                }	
 
-                // /* Jump */
-                // JMP 	JSR 	RTS 		
+                /* Jump */
+                "JMP" => {
+                    todo!()
+                }
+                "JSR" => {
+                    todo!()
+                }	
+                "RTS"  => {
+                    todo!()
+                }			
                 "BRK" => {
                     return
                 }	
-                // RTI
+                "RTI" => {
+                    todo!()
+                }	
 
-                // /* Stack */
-                // PHA 	PLA 	PHP 	PLP 	TXS 	TSX 		
+                /* Stack */
+                "PHA" => {
+                    todo!()
+                }	
+                "PLA" => {
+                    todo!()
+                }	
+                "PHP" => {
+                    todo!()
+                }	
+                "PLP" => {
+                    todo!()
+                }	
+                "TXS" => {
+                    todo!()
+                }	
+                "TSX" => {
+                    todo!()
+                }	 		
 
-                // /* Flags */
-                // CLC 	SEC 	CLI 	SEI 	CLD 	SED 	CLV 	
+                /* Flags */
+                "CLC" => {
+                    todo!()
+                }
+                "SEC" => {
+                    todo!()
+                }
+                "CLI" => {
+                    todo!()
+                }
+                "SEI" => {
+                    todo!()
+                }
+                "CLD" => {
+                    todo!()
+                }
+                "SED" => {
+                    todo!()
+                }	
+                "CLV"  => {
+                    todo!()
+                } 	
 
                 /* Other */
                 "NOP" => {
