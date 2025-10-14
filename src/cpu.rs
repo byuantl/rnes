@@ -2,20 +2,22 @@ use std::{collections::HashMap};
 use crate::opcodes;
 
 bitflags! {
-    ///  http://wiki.nesdev.com/w/index.php/Status_flags
+    /// http://wiki.nesdev.com/w/index.php/Status_flags
     ///
-    ///  ```
-    ///  7 6 5 4 3 2 1 0
-    ///  N V 1 B D I Z C
-    ///  | | | | | | | +--- Carry flag
-    ///  | | | | | | +----- Zero flag
-    ///  | | | | | +------- Interrupt disable
-    ///  | | | | +--------- Decimal mode
-    ///  | | | +----------- Break command
-    ///  | | +------------- unused bit (always 1)
-    ///  | +--------------- Overflow flag
-    ///  +----------------- Negative flag
-    ///  ```
+    /// ```
+    /// 7  bit  0
+    /// ---- ----
+    /// NV1B DIZC
+    /// |||| ||||
+    /// |||| |||+- Carry
+    /// |||| ||+-- Zero
+    /// |||| |+--- Interrupt Disable
+    /// |||| +---- Decimal
+    /// |||+------ (No CPU effect; see: the B flag)
+    /// ||+------- (No CPU effect; always pushed as 1)
+    /// |+-------- Overflow
+    /// +--------- Negative
+    /// ```
     ///
     pub struct CpuFlags: u8 {
         const CARRY             = 0b00000001;
@@ -70,7 +72,7 @@ impl CPU {
         }
     }
 
-    fn get_operand_addres(&self, mode: &AddressingMode) -> u16 {
+    fn get_operand_address(&self, mode: &AddressingMode) -> u16 {
         match mode {
             AddressingMode::Immediate => self.program_counter,
             
@@ -160,11 +162,26 @@ impl CPU {
         }
     }
 
+    fn set_register_a(&mut self, result: u8) {
+        self.register_a = result;
+        self.update_zero_and_negative_flags(result);
+    }
+
+    fn set_register_x(&mut self, result: u8) {
+        self.register_x = result;
+        self.update_zero_and_negative_flags(result);
+    }
+
+    fn set_register_y(&mut self, result: u8) {
+        self.register_y = result;
+        self.update_zero_and_negative_flags(result);
+    }
+
     /// ignoring decimal mode
     /// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
-    fn add_to_register_a(&mut self, data: u8) {
+    fn add_to_register_a(&mut self, value: u8) {
         let sum = self.register_a as u16 
-            + data as u16
+            + value as u16
             + (if self.status.contains(CpuFlags::CARRY) {
                 1
             } else {
@@ -179,43 +196,13 @@ impl CPU {
 
         let result = sum as u8;
 
-        if (data ^ result) & (self.register_a ^ result) & 0x80 != 0 {
+        if (value ^ result) & (self.register_a ^ result) & 0x80 != 0 {
             self.status.insert(CpuFlags::OVERFLOW);
         } else {
             self.status.remove(CpuFlags::OVERFLOW);
         }
 
-        self.register_a = result;
-        self.update_zero_and_negative_flags(self.register_a);
-    }
-
-    fn adc(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_addres(mode);
-        let value = self.mem_read(addr);
-        self.add_to_register_a(value);
-    }
-
-    fn lda(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_addres(mode);
-        let value = self.mem_read(addr);
-        
-        self.register_a = value;
-        self.update_zero_and_negative_flags(self.register_a);
-    }
-
-    fn tax(&mut self) {
-        self.register_x = self.register_a;
-        self.update_zero_and_negative_flags(self.register_x);
-    }
-
-    fn inx(&mut self) {
-        self.register_x = self.register_x.wrapping_add(1);
-        self.update_zero_and_negative_flags(self.register_x);
-    }
-
-    fn sta(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_addres(mode);
-        self.mem_write(addr, self.register_a);
+        self.set_register_a(result);
     }
 
     pub fn run(&mut self) {
@@ -227,26 +214,124 @@ impl CPU {
             let program_counter_state = self.program_counter;
 
             let opcode = opcodes.get(code).expect(&format!("OpCode {:x} is not recognized", code));
+            let mode = &opcode.mode;
+            let mnemonic = opcode.mnemonic;
 
-            match code {
-                0x69 | 0x65 | 0x75 | 0x6d | 0x7d | 0x79 | 0x61 | 0x71 => {
-                    self.adc(&opcode.mode);
+            match mnemonic {
+                /* Access */
+                "LDA" => {
+                    let addr = self.get_operand_address(mode);
+                    let value = self.mem_read(addr);
+        
+                    self.set_register_a(value);
+                }
+                "STA" => {
+                    let addr = self.get_operand_address(mode);
+
+                    self.mem_write(addr, self.register_a);
+                }
+                "LDX" => {
+                    let addr = self.get_operand_address(mode);
+                    let value = self.mem_read(addr);
+        
+                    self.set_register_x(value);
+                }
+                "STX" => {
+                    let addr = self.get_operand_address(mode);
+
+                    self.mem_write(addr, self.register_x);
+                }
+                "LDY" => {
+                    let addr = self.get_operand_address(mode);
+                    let value = self.mem_read(addr);
+        
+                    self.set_register_y(value);
+                }
+                "STY" => {
+                    let addr = self.get_operand_address(mode);
+
+                    self.mem_write(addr, self.register_y);
+                },
+
+                /* Transfer */
+                "TAX" => {
+                    self.set_register_x(self.register_a);
+                }
+                "TXA" => {
+                    self.set_register_a(self.register_x);
+                }
+                "TAY" => {
+                    self.set_register_y(self.register_a);
+                }
+                "TYA" => {
+                    self.set_register_a(self.register_y);
                 }
 
-                0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
-                    self.lda(&opcode.mode);
+                /* Arithmetic */
+                "ADC" => {
+                    let addr = self.get_operand_address(mode);
+                    let value = self.mem_read(addr);
+
+                    self.add_to_register_a(value);
+                }
+                "SBC" => {
+                    let addr = self.get_operand_address(mode);
+                    let value = self.mem_read(addr);
+
+                    self.add_to_register_a(((value as i8).wrapping_neg().wrapping_sub(1)) as u8);
+                }
+                "INC" => {
+                    todo!()
+                }
+                "DEC" => {
+                    todo!()
+                }
+                "INX" => {
+                    self.set_register_x(self.register_x.wrapping_add(1));
+                }
+                "DEX" => {
+                    self.set_register_x(self.register_x.wrapping_sub(1));
+                }
+                "INY" => {
+                    self.set_register_y(self.register_y.wrapping_add(1));
+                }
+                "DEY" => {
+                    self.set_register_x(self.register_x.wrapping_sub(1));
                 }
 
-                0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
-                    self.sta(&opcode.mode);
+                // /* Shift */
+                // ASL 	LSR 	ROL 	ROR 	
+
+                // /* Bitwise */
+                // AND 	ORA 	EOR 	BIT 				
+
+                // /* Compare */
+                // CMP 	CPX 	CPY 		
+
+                // /* Branch */
+                // BCC 	BCS 	BEQ 	BNE 	BPL 	BMI 	BVC 	BVS
+
+                // /* Jump */
+                // JMP 	JSR 	RTS 		
+                "BRK" => {
+                    return
+                }	
+                // RTI
+
+                // /* Stack */
+                // PHA 	PLA 	PHP 	PLP 	TXS 	TSX 		
+
+                // /* Flags */
+                // CLC 	SEC 	CLI 	SEI 	CLD 	SED 	CLV 	
+
+                /* Other */
+                "NOP" => {
+                    
                 }
 
-                0xAA => self.tax(),
-
-                0xE8 => self.inx(),
-
-                0x00 => return,
-                _ => todo!()
+                _=> {
+                    panic!();
+                }
             }
 
             if program_counter_state == self.program_counter {
