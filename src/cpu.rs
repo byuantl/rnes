@@ -290,7 +290,7 @@ impl CPU {
                 "DEC" => {
                     let addr = self.get_operand_address(mode);
                     let data = self.mem_read(addr);
-                    
+
                     self.mem_write(addr, data.wrapping_sub(1));
                     self.update_zero_and_negative_flags(data);
                 }
@@ -411,25 +411,25 @@ impl CPU {
 
                 /* Flags */
                 "CLC" => {
-                    todo!()
+                    self.status.remove(CpuFlags::CARRY);
                 }
                 "SEC" => {
-                    todo!()
+                    self.status.insert(CpuFlags::CARRY);
                 }
                 "CLI" => {
-                    todo!()
+                    self.status.remove(CpuFlags::INTERRUPT_DISABLE);
                 }
                 "SEI" => {
-                    todo!()
+                    self.status.insert(CpuFlags::INTERRUPT_DISABLE);
                 }
                 "CLD" => {
-                    todo!()
+                    self.status.remove(CpuFlags::DECIMAL_MODE);
                 }
                 "SED" => {
-                    todo!()
+                    self.status.insert(CpuFlags::DECIMAL_MODE);
                 }	
                 "CLV"  => {
-                    todo!()
+                    self.status.remove(CpuFlags::OVERFLOW);
                 } 	
 
                 /* Other */
