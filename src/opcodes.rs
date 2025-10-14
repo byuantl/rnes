@@ -108,25 +108,25 @@ lazy_static! {
         OpCode::new(0x88, "DEY", 1, 2, AddressingMode::NoneAddressing),
 
         /* Shift */
-        OpCode::new(0x0A, "ASL", 1, 2, AddressingMode::NoneAddressing),
+        OpCode::new(0x0A, "ASL", 1, 2, AddressingMode::NoneAddressing), //AddressingMode that acts as Accumulator
         OpCode::new(0x06, "ASL", 2, 5, AddressingMode::ZeroPage),
         OpCode::new(0x16, "ASL", 2, 6, AddressingMode::ZeroPage_X),
         OpCode::new(0x0E, "ASL", 3, 6, AddressingMode::Absolute),
         OpCode::new(0x1E, "ASL", 3, 7, AddressingMode::Absolute_X),
 
-        OpCode::new(0x4A, "LSR", 1, 2, AddressingMode::NoneAddressing),
+        OpCode::new(0x4A, "LSR", 1, 2, AddressingMode::NoneAddressing), //AddressingMode that acts as Accumulator
         OpCode::new(0x46, "LSR", 2, 5, AddressingMode::ZeroPage),
         OpCode::new(0x56, "LSR", 2, 6, AddressingMode::ZeroPage_X),
         OpCode::new(0x4E, "LSR", 3, 6, AddressingMode::Absolute),
         OpCode::new(0x5E, "LSR", 3, 7, AddressingMode::Absolute_X),
 
-        OpCode::new(0x2A, "ROL", 1, 2, AddressingMode::NoneAddressing),
+        OpCode::new(0x2A, "ROL", 1, 2, AddressingMode::NoneAddressing), //AddressingMode that acts as Accumulator
         OpCode::new(0x26, "ROL", 2, 5, AddressingMode::ZeroPage),
         OpCode::new(0x36, "ROL", 2, 6, AddressingMode::ZeroPage_X),
         OpCode::new(0x2E, "ROL", 3, 6, AddressingMode::Absolute),
         OpCode::new(0x3E, "ROL", 3, 7, AddressingMode::Absolute_X),
 
-        OpCode::new(0x6A, "ROR", 1, 2, AddressingMode::NoneAddressing),
+        OpCode::new(0x6A, "ROR", 1, 2, AddressingMode::NoneAddressing), //AddressingMode that acts as Accumulator
         OpCode::new(0x66, "ROR", 2, 5, AddressingMode::ZeroPage),
         OpCode::new(0x76, "ROR", 2, 6, AddressingMode::ZeroPage_X),
         OpCode::new(0x6E, "ROR", 3, 6, AddressingMode::Absolute),
@@ -200,7 +200,7 @@ lazy_static! {
         
 
         /* Jump */
-        OpCode::new(0x4C, "JMP", 3, 3, AddressingMode::NoneAddressing), //AddressingMode that acts as Immidiate
+        OpCode::new(0x4C, "JMP", 3, 3, AddressingMode::NoneAddressing), //AddressingMode that acts as Immediate
         
         OpCode::new(0x6C, "JMP", 3, 5, AddressingMode::NoneAddressing), //AddressingMode:Indirect with 6502 bug
 
