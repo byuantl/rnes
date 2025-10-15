@@ -149,17 +149,8 @@ impl CPU {
     }
 
     fn update_zero_and_negative_flags(&mut self, result: u8) {
-        if result == 0 {
-            self.status.insert(CpuFlags::ZERO);
-        } else {
-            self.status.remove(CpuFlags::ZERO);
-        }
-
-        if result & 0b1000_0000 != 0 {
-            self.status.insert(CpuFlags::NEGATIVE);
-        } else {
-            self.status.remove(CpuFlags::NEGATIVE);
-        }
+        self.status.set(CpuFlags::ZERO, result == 0);
+        self.status.set(CpuFlags::NEGATIVE, result & 0b1000_0000 != 0);
     }
 
     fn set_register_a(&mut self, result: u8) {
@@ -188,19 +179,11 @@ impl CPU {
                 0
             }) as u16;
 
-        if sum > 0xFF {
-            self.status.insert(CpuFlags::CARRY);
-        } else {
-            self.status.remove(CpuFlags::CARRY);
-        }
+        self.status.set(CpuFlags::CARRY, sum > 0xFF);
 
         let result = sum as u8;
 
-        if (value ^ result) & (self.register_a ^ result) & 0x80 != 0 {
-            self.status.insert(CpuFlags::OVERFLOW);
-        } else {
-            self.status.remove(CpuFlags::OVERFLOW);
-        }
+        self.status.set(CpuFlags::OVERFLOW, (value ^ result) & (self.register_a ^ result) & 0x80 != 0);
 
         self.set_register_a(result);
     }
@@ -315,11 +298,7 @@ impl CPU {
                         self.mem_read(self.get_operand_address(mode))
                     };
 
-                    if data >> 7 == 1 {
-                        self.status.insert(CpuFlags::CARRY);
-                    } else {
-                        self.status.remove(CpuFlags::CARRY);
-                    }
+                    self.status.set(CpuFlags::CARRY, data >> 7 == 1);
                     data = data << 1;
 
                     if let AddressingMode::NoneAddressing = mode {
@@ -336,11 +315,7 @@ impl CPU {
                         self.mem_read(self.get_operand_address(mode))
                     };
 
-                    if data & 1 == 1 {
-                        self.status.insert(CpuFlags::CARRY);
-                    } else {
-                        self.status.remove(CpuFlags::CARRY);
-                    }
+                    self.status.set(CpuFlags::CARRY, data & 1 == 1);
                     data = data >> 1;
 
                     if let AddressingMode::NoneAddressing = mode {
@@ -358,11 +333,7 @@ impl CPU {
                     };
 
                     let old_carry = self.status.contains(CpuFlags::CARRY);
-                    if data >> 7 == 1 {
-                        self.status.insert(CpuFlags::CARRY);
-                    } else {
-                        self.status.remove(CpuFlags::CARRY);
-                    }
+                    self.status.set(CpuFlags::CARRY, data >> 7 == 1);
                     data = data << 1;
                     if old_carry {
                         data = data | 1;
@@ -383,11 +354,7 @@ impl CPU {
                     };
 
                     let old_carry = self.status.contains(CpuFlags::CARRY);
-                    if data & 1 == 1 {
-                        self.status.insert(CpuFlags::CARRY);
-                    } else {
-                        self.status.remove(CpuFlags::CARRY);
-                    }
+                    self.status.set(CpuFlags::CARR, data & 1 == 1);
                     data = data >> 1;
                     if old_carry {
                         data = data | 0b10000000;
@@ -403,16 +370,30 @@ impl CPU {
 
                 /* Bitwise */
                 "AND" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+                    
+                    self.set_register_a(data & self.register_a);
                 }
                 "ORA" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+                    
+                    self.set_register_a(data | self.register_a);
                 }
                 "EOR" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+                    
+                    self.set_register_a(data ^ self.register_a);
                 }
                 "BIT" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+
+                    self.status.set(CpuFlags::ZERO, self.register_a & data == 0);
+                    self.status.set(CpuFlags::NEGATIVE, data & 0b10000000 > 0);
+                    self.status.set(CpuFlags::OVERFLOW, data & 0b01000000 > 0);
                 }	
 
                 /* Compare */
