@@ -351,10 +351,54 @@ impl CPU {
                     }
                 }
                 "ROL" => {
-                    todo!()
+                    let mut data = if let AddressingMode::NoneAddressing = mode {
+                        self.register_a
+                    } else {
+                        self.mem_read(self.get_operand_address(mode))
+                    };
+
+                    let old_carry = self.status.contains(CpuFlags::CARRY);
+                    if data >> 7 == 1 {
+                        self.status.insert(CpuFlags::CARRY);
+                    } else {
+                        self.status.remove(CpuFlags::CARRY);
+                    }
+                    data = data << 1;
+                    if old_carry {
+                        data = data | 1;
+                    }
+
+                    if let AddressingMode::NoneAddressing = mode {
+                        self.set_register_a(data);
+                    } else {
+                        self.mem_write(self.get_operand_address(mode), data);
+                        self.update_zero_and_negative_flags(data);
+                    }
                 }
                 "ROR"  => {
-                    todo!()
+                    let mut data = if let AddressingMode::NoneAddressing = mode {
+                        self.register_a
+                    } else {
+                        self.mem_read(self.get_operand_address(mode))
+                    };
+
+                    let old_carry = self.status.contains(CpuFlags::CARRY);
+                    if data & 1 == 1 {
+                        self.status.insert(CpuFlags::CARRY);
+                    } else {
+                        self.status.remove(CpuFlags::CARRY);
+                    }
+                    data = data >> 1;
+                    if old_carry {
+                        data = data | 0b10000000;
+                    }
+
+                    if let AddressingMode::NoneAddressing = mode {
+                        self.set_register_a(data);
+                    } else {
+                        self.mem_write(self.get_operand_address(mode), data);
+                        self.update_zero_and_negative_flags(data);
+                    }
                 }	
 
                 /* Bitwise */
