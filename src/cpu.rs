@@ -1,5 +1,5 @@
 use std::{collections::HashMap};
-use crate::opcodes::{self, OpCode};
+use crate::opcodes;
 
 bitflags! {
     /// http://wiki.nesdev.com/w/index.php/Status_flags
