@@ -168,7 +168,7 @@ impl CPU {
         self.update_zero_and_negative_flags(result);
     }
 
-    /// ignoring decimal mode
+    /// Without decimal mode since the NES' RP2A03 removed it\
     /// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
     fn add_to_register_a(&mut self, value: u8) {
         let sum = self.register_a as u16 
