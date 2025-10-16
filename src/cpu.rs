@@ -150,7 +150,7 @@ impl CPU {
 
     fn update_zero_and_negative_flags(&mut self, result: u8) {
         self.status.set(CpuFlags::ZERO, result == 0);
-        self.status.set(CpuFlags::NEGATIVE, result & 0b1000_0000 != 0);
+        self.status.set(CpuFlags::NEGATIVE, result & 0x80 != 0);
     }
 
     fn set_register_a(&mut self, result: u8) {
@@ -183,7 +183,7 @@ impl CPU {
 
         let result = sum as u8;
 
-        self.status.set(CpuFlags::OVERFLOW, (value ^ result) & (self.register_a ^ result) & 0x80 != 0);
+        self.status.set(CpuFlags::OVERFLOW, ((value ^ result) & (self.register_a ^ result) & 0x80) != 0);
 
         self.set_register_a(result);
     }
@@ -354,7 +354,7 @@ impl CPU {
                     };
 
                     let old_carry = self.status.contains(CpuFlags::CARRY);
-                    self.status.set(CpuFlags::CARR, data & 1 == 1);
+                    self.status.set(CpuFlags::CARRY, data & 1 == 1);
                     data = data >> 1;
                     if old_carry {
                         data = data | 0b10000000;
@@ -398,13 +398,28 @@ impl CPU {
 
                 /* Compare */
                 "CMP" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+
+                    self.status.set(CpuFlags::CARRY, self.register_a >= data);
+
+                    self.update_zero_and_negative_flags(self.register_a.wrapping_sub(data));
                 }
                 "CPX" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+
+                    self.status.set(CpuFlags::CARRY, self.register_x >= data);
+
+                    self.update_zero_and_negative_flags(self.register_x.wrapping_sub(data));
                 }	
                 "CPY" => {
-                    todo!()
+                    let addr = self.get_operand_address(mode);
+                    let data = self.mem_read(addr);
+
+                    self.status.set(CpuFlags::CARRY, self.register_y >= data);
+
+                    self.update_zero_and_negative_flags(self.register_y.wrapping_sub(data));
                 }	
 
                 /* Branch */
@@ -602,9 +617,17 @@ mod test {
     #[test]
     fn test_sbc_overflow() {
         let mut cpu = CPU::new();
-        cpu.load_and_run(vec![0xA9, 0x50, 0xE9, 0xB0, 0x00]);
+        cpu.load_and_run(vec![0x38, 0xA9, 0x50, 0xE9, 0xB0, 0x00]);
 
-        // assert_eq!(cpu.register_a, 0xA0);
+        assert_eq!(cpu.register_a, 0xA0);
         assert!(cpu.status.contains(CpuFlags::OVERFLOW));
+    }
+
+    #[test]
+    fn test_cmp_negative() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0x38, 0xA9, 0xF0, 0xC9, 0xFF, 0x00]);
+
+        assert!(cpu.status.contains(CpuFlags::NEGATIVE));
     }
 }
